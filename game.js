@@ -360,6 +360,8 @@ function startGame() {
   nextPiece = null;
   document.getElementById('startOverlay').classList.add('hidden');
   hideOverlay();
+  const pauseBtn = document.getElementById('touchPause');
+  if (pauseBtn) pauseBtn.textContent = '暫停';
   spawnPiece();
   if (!animationId) draw();
 }
@@ -379,6 +381,28 @@ document.getElementById('startBtn').addEventListener('click', () => {
 });
 
 document.getElementById('restartBtn').addEventListener('click', restartGame);
+
+// 觸控按鈕（手機用）
+function bindTouchBtn(id, action) {
+  const btn = document.getElementById(id);
+  if (!btn) return;
+  const run = (e) => {
+    e.preventDefault();
+    action();
+  };
+  btn.addEventListener('click', run);
+  btn.addEventListener('touchend', run, { passive: false });
+}
+bindTouchBtn('touchLeft', moveLeft);
+bindTouchBtn('touchRight', moveRight);
+bindTouchBtn('touchRotate', rotatePiece);
+bindTouchBtn('touchDown', moveDown);
+bindTouchBtn('touchDrop', hardDrop);
+bindTouchBtn('touchPause', () => {
+  togglePause();
+  const btn = document.getElementById('touchPause');
+  if (btn) btn.textContent = paused ? '繼續' : '暫停';
+});
 
 document.addEventListener('keydown', (e) => {
   if (!gameStarted) {
