@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>俄羅斯方塊 Tetris</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="game-container">
+    <h1>俄羅斯方塊</h1>
+    <div class="game-panel">
+      <div class="side-panel left">
+        <div class="info-box">
+          <span class="label">分數</span>
+          <span id="score">0</span>
+        </div>
+        <div class="info-box">
+          <span class="label">等級</span>
+          <span id="level">1</span>
+        </div>
+        <div class="info-box">
+          <span class="label">消除行數</span>
+          <span id="lines">0</span>
+        </div>
+        <div class="next-box">
+          <span class="label">下一個</span>
+          <canvas id="nextCanvas" width="120" height="120"></canvas>
+        </div>
+      </div>
+      <div class="game-wrapper">
+        <canvas id="gameCanvas" width="300" height="600"></canvas>
+        <div id="overlay" class="overlay hidden">
+          <div class="overlay-content">
+            <p id="overlayMessage">遊戲結束</p>
+            <button id="restartBtn">再玩一次</button>
+          </div>
+        </div>
+        <div id="startOverlay" class="overlay">
+          <div class="overlay-content">
+            <p>按 空白鍵 或 點擊開始</p>
+            <button id="startBtn">開始遊戲</button>
+          </div>
+        </div>
+      </div>
+      <div class="side-panel right">
+        <div class="controls">
+          <span class="label">操作說明</span>
+          <p>← → 左右移動</p>
+          <p>↑ 旋轉</p>
+          <p>↓ 軟降</p>
+          <p>空白 硬降</p>
+          <p>P 暫停</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script src="game.js"></script>
+</body>
+</html>
