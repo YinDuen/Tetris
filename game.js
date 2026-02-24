@@ -69,10 +69,10 @@ const sound = {
   clearLines(count) {
     const ctx = getAudioContext();
     if (ctx.state === 'suspended') ctx.resume();
-    // 依消除行數播放短上行旋律，每音帶清脆包絡
+    // 依消除行數播放短上行旋律，正弦波 + 柔和包絡，較順耳
     const notes = [[523], [392, 523], [330, 392, 523], [262, 330, 392, 523]][count - 1] || [523];
-    const noteLen = 0.08;
-    const gap = 0.045;
+    const noteLen = 0.12;
+    const gap = 0.055;
     notes.forEach((freq, i) => {
       const start = ctx.currentTime + i * (noteLen + gap);
       try {
@@ -81,11 +81,10 @@ const sound = {
         osc.connect(gain);
         gain.connect(ctx.destination);
         osc.frequency.setValueAtTime(freq, start);
-        osc.type = 'square';
-        osc.detune.setValueAtTime(-80, start);
-        const at = 0.006;
+        osc.type = 'sine';
+        const at = 0.02;
         gain.gain.setValueAtTime(0, start);
-        gain.gain.linearRampToValueAtTime(0.18, start + at);
+        gain.gain.linearRampToValueAtTime(0.2, start + at);
         gain.gain.exponentialRampToValueAtTime(0.001, start + noteLen);
         osc.start(start);
         osc.stop(start + noteLen);
@@ -93,6 +92,151 @@ const sound = {
     });
   },
 };
+
+// 各關卡專用 BGM（每關不同旋律與低音，關卡 6+ 循環 1～5）
+const BGM_TRACKS = [
+  { name: 'Lv1', melody: [
+    { f: 262, d: 380 }, { f: 330, d: 380 }, { f: 392, d: 560 }, { f: 523, d: 560 }, { f: 392, d: 280 }, { f: 330, d: 720 },
+    { f: 0, d: 140 }, { f: 294, d: 320 }, { f: 330, d: 320 }, { f: 349, d: 320 }, { f: 392, d: 500 }, { f: 440, d: 500 }, { f: 392, d: 320 }, { f: 349, d: 660 },
+    { f: 0, d: 160 }, { f: 330, d: 280 }, { f: 392, d: 280 }, { f: 440, d: 440 }, { f: 523, d: 500 }, { f: 440, d: 280 }, { f: 392, d: 580 }, { f: 330, d: 580 },
+    { f: 0, d: 180 }, { f: 392, d: 320 }, { f: 330, d: 320 }, { f: 262, d: 500 }, { f: 262, d: 400 }, { f: 294, d: 400 }, { f: 330, d: 660 },
+    { f: 0, d: 220 }, { f: 523, d: 500 }, { f: 392, d: 400 }, { f: 330, d: 500 }, { f: 262, d: 960 },
+    { f: 0, d: 240 }, { f: 349, d: 340 }, { f: 392, d: 340 }, { f: 440, d: 520 }, { f: 523, d: 520 }, { f: 392, d: 340 }, { f: 349, d: 700 },
+    { f: 0, d: 200 }, { f: 440, d: 380 }, { f: 523, d: 380 }, { f: 587, d: 560 }, { f: 659, d: 560 }, { f: 523, d: 380 }, { f: 440, d: 760 },
+    { f: 0, d: 240 }, { f: 392, d: 380 }, { f: 330, d: 380 }, { f: 262, d: 600 }, { f: 262, d: 880 },
+  ], bass: [131, 98, 131, 98, 131, 98, 110, 98, 131, 98, 131, 98, 110, 98, 110, 98], bassMs: 720 },
+  { name: 'Lv2', melody: [
+    { f: 330, d: 320 }, { f: 392, d: 320 }, { f: 440, d: 480 }, { f: 523, d: 640 }, { f: 0, d: 120 }, { f: 440, d: 320 }, { f: 392, d: 640 }, { f: 330, d: 640 },
+    { f: 0, d: 160 }, { f: 349, d: 300 }, { f: 392, d: 300 }, { f: 440, d: 480 }, { f: 523, d: 480 }, { f: 440, d: 300 }, { f: 392, d: 600 }, { f: 349, d: 600 },
+    { f: 0, d: 180 }, { f: 392, d: 280 }, { f: 440, d: 280 }, { f: 523, d: 520 }, { f: 659, d: 520 }, { f: 523, d: 280 }, { f: 440, d: 560 }, { f: 392, d: 560 },
+    { f: 0, d: 200 }, { f: 262, d: 400 }, { f: 330, d: 400 }, { f: 392, d: 560 }, { f: 523, d: 560 }, { f: 392, d: 400 }, { f: 330, d: 800 },
+    { f: 0, d: 220 }, { f: 440, d: 360 }, { f: 523, d: 360 }, { f: 587, d: 540 }, { f: 659, d: 540 }, { f: 523, d: 360 }, { f: 440, d: 720 },
+    { f: 0, d: 240 }, { f: 330, d: 360 }, { f: 392, d: 360 }, { f: 440, d: 600 }, { f: 392, d: 600 }, { f: 330, d: 800 },
+  ], bass: [98, 131, 98, 131, 110, 131, 98, 131, 98, 110, 98, 110, 131, 98, 131, 98], bassMs: 680 },
+  { name: 'Lv3', melody: [
+    { f: 392, d: 360 }, { f: 440, d: 360 }, { f: 523, d: 540 }, { f: 659, d: 540 }, { f: 523, d: 360 }, { f: 440, d: 700 },
+    { f: 0, d: 140 }, { f: 523, d: 320 }, { f: 587, d: 320 }, { f: 659, d: 500 }, { f: 784, d: 500 }, { f: 659, d: 320 }, { f: 587, d: 640 }, { f: 523, d: 640 },
+    { f: 0, d: 160 }, { f: 440, d: 300 }, { f: 523, d: 300 }, { f: 587, d: 480 }, { f: 659, d: 480 }, { f: 587, d: 300 }, { f: 523, d: 600 }, { f: 440, d: 600 },
+    { f: 0, d: 180 }, { f: 330, d: 380 }, { f: 392, d: 380 }, { f: 440, d: 560 }, { f: 523, d: 560 }, { f: 440, d: 380 }, { f: 392, d: 760 },
+    { f: 0, d: 200 }, { f: 262, d: 400 }, { f: 330, d: 400 }, { f: 392, d: 640 }, { f: 392, d: 640 }, { f: 330, d: 800 },
+    { f: 0, d: 220 }, { f: 392, d: 340 }, { f: 440, d: 340 }, { f: 523, d: 520 }, { f: 440, d: 520 }, { f: 392, d: 700 },
+  ], bass: [131, 131, 98, 98, 131, 98, 131, 98, 110, 110, 98, 131, 131, 98, 98, 110], bassMs: 640 },
+  { name: 'Lv4', melody: [
+    { f: 262, d: 240 }, { f: 330, d: 240 }, { f: 392, d: 240 }, { f: 523, d: 400 }, { f: 392, d: 240 }, { f: 523, d: 400 }, { f: 0, d: 100 },
+    { f: 294, d: 220 }, { f: 349, d: 220 }, { f: 440, d: 380 }, { f: 523, d: 380 }, { f: 440, d: 220 }, { f: 349, d: 480 }, { f: 0, d: 120 },
+    { f: 330, d: 220 }, { f: 392, d: 220 }, { f: 523, d: 380 }, { f: 659, d: 380 }, { f: 523, d: 220 }, { f: 392, d: 480 }, { f: 0, d: 120 },
+    { f: 392, d: 260 }, { f: 330, d: 260 }, { f: 262, d: 420 }, { f: 262, d: 420 }, { f: 294, d: 260 }, { f: 330, d: 520 }, { f: 0, d: 140 },
+    { f: 523, d: 380 }, { f: 440, d: 260 }, { f: 392, d: 380 }, { f: 330, d: 380 }, { f: 262, d: 720 }, { f: 0, d: 160 },
+    { f: 440, d: 260 }, { f: 523, d: 260 }, { f: 587, d: 400 }, { f: 523, d: 400 }, { f: 440, d: 560 }, { f: 0, d: 180 },
+  ], bass: [131, 98, 131, 98, 110, 98, 131, 98, 131, 110, 98, 110, 131, 98, 131, 98], bassMs: 560 },
+  { name: 'Lv5', melody: [
+    { f: 523, d: 340 }, { f: 440, d: 340 }, { f: 392, d: 520 }, { f: 330, d: 520 }, { f: 392, d: 340 }, { f: 330, d: 680 },
+    { f: 0, d: 140 }, { f: 440, d: 300 }, { f: 392, d: 300 }, { f: 330, d: 480 }, { f: 262, d: 480 }, { f: 330, d: 300 }, { f: 262, d: 620 }, { f: 294, d: 620 },
+    { f: 0, d: 160 }, { f: 392, d: 280 }, { f: 330, d: 280 }, { f: 262, d: 460 }, { f: 262, d: 460 }, { f: 330, d: 280 }, { f: 392, d: 560 }, { f: 330, d: 560 },
+    { f: 0, d: 180 }, { f: 659, d: 360 }, { f: 523, d: 360 }, { f: 440, d: 540 }, { f: 392, d: 540 }, { f: 440, d: 360 }, { f: 523, d: 720 },
+    { f: 0, d: 200 }, { f: 392, d: 320 }, { f: 330, d: 320 }, { f: 262, d: 640 }, { f: 262, d: 640 }, { f: 330, d: 800 },
+    { f: 0, d: 220 }, { f: 330, d: 320 }, { f: 392, d: 320 }, { f: 440, d: 500 }, { f: 392, d: 500 }, { f: 330, d: 760 },
+  ], bass: [98, 131, 98, 131, 98, 110, 131, 110, 98, 131, 98, 98, 110, 131, 110, 98], bassMs: 600 },
+];
+let bgmSchedHandle = null;
+let bgmPaused = false;
+let bgmGainNode = null;
+
+function scheduleBGMNote(ctx, startTime, freq, durationSec, volume, waveType, attack = 0.012, dest) {
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  osc.connect(gain);
+  gain.connect(dest != null ? dest : ctx.destination);
+  osc.type = waveType;
+  osc.frequency.setValueAtTime(freq, startTime);
+  gain.gain.setValueAtTime(0, startTime);
+  gain.gain.linearRampToValueAtTime(volume, startTime + attack);
+  gain.gain.exponentialRampToValueAtTime(0.001, startTime + durationSec);
+  osc.start(startTime);
+  osc.stop(startTime + durationSec);
+}
+
+function getBGMTrackIndex() {
+  return (Math.max(1, level) - 1) % BGM_TRACKS.length;
+}
+
+function getTrackLoopMs(trackIndex) {
+  return BGM_TRACKS[trackIndex].melody.reduce((s, n) => s + n.d, 0);
+}
+
+function scheduleBGMLoop(ctx, startTime, trackIndex) {
+  if (!bgmGainNode) return;
+  const track = BGM_TRACKS[trackIndex];
+  const loopMs = getTrackLoopMs(trackIndex);
+  let tMel = 0;
+  track.melody.forEach(({ f, d }) => {
+    if (f > 0) scheduleBGMNote(ctx, startTime + tMel / 1000, f, d / 1000 * 0.78, 0.058, 'triangle', 0.01, bgmGainNode);
+    tMel += d;
+  });
+  let tBass = 0;
+  while (tBass < loopMs) {
+    const freq = track.bass[Math.floor(tBass / track.bassMs) % track.bass.length];
+    scheduleBGMNote(ctx, startTime + tBass / 1000, freq, track.bassMs / 1000 * 0.85, 0.035, 'sine', 0.008, bgmGainNode);
+    tBass += track.bassMs;
+  }
+}
+
+function bgmScheduler() {
+  if (bgmPaused) return;
+  try {
+    const ctx = getAudioContext();
+    if (ctx.state === 'suspended') ctx.resume();
+    const trackIndex = getBGMTrackIndex();
+    const loopMs = getTrackLoopMs(trackIndex);
+    scheduleBGMLoop(ctx, ctx.currentTime, trackIndex);
+    bgmSchedHandle = setTimeout(bgmScheduler, loopMs);
+  } catch (_) {}
+}
+
+const bgm = {
+  start() {
+    this.stop();
+    bgmPaused = false;
+    const ctx = getAudioContext();
+    if (!bgmGainNode) {
+      bgmGainNode = ctx.createGain();
+      bgmGainNode.connect(ctx.destination);
+    }
+    bgmGainNode.gain.setValueAtTime(1, ctx.currentTime);
+    bgmScheduler();
+  },
+  stop() {
+    if (bgmSchedHandle) clearTimeout(bgmSchedHandle);
+    bgmSchedHandle = null;
+    if (bgmGainNode) {
+      try {
+        const ctx = getAudioContext();
+        bgmGainNode.gain.setValueAtTime(0, ctx.currentTime);
+      } catch (_) {}
+    }
+  },
+  setPaused(p) {
+    bgmPaused = p;
+  },
+};
+
+// 遊戲結束時播放約 2.5 秒的結束短曲（停止 BGM 後播放）
+const GAME_OVER_JINGLE = [
+  { f: 523, d: 380 }, { f: 440, d: 320 }, { f: 392, d: 320 }, { f: 330, d: 400 }, { f: 262, d: 1100 },
+];
+
+function playGameOverJingle() {
+  try {
+    const ctx = getAudioContext();
+    if (ctx.state === 'suspended') ctx.resume();
+    const start = ctx.currentTime;
+    let t = 0;
+    GAME_OVER_JINGLE.forEach(({ f, d }) => {
+      scheduleBGMNote(ctx, start + t / 1000, f, d / 1000 * 0.9, 0.07, 'sine', 0.03);
+      t += d;
+    });
+  } catch (_) {}
+}
 
 let board = [];
 let currentPiece = null;
@@ -214,6 +358,8 @@ function spawnPiece() {
   nextPiece = randomPiece();
   if (collision()) {
     gameOver = true;
+    bgm.stop();
+    playGameOverJingle();
     showOverlay('遊戲結束');
   }
   drawNext();
@@ -362,6 +508,7 @@ function startGame() {
   hideOverlay();
   const pauseBtn = document.getElementById('touchPause');
   if (pauseBtn) pauseBtn.textContent = '暫停';
+  bgm.start();
   spawnPiece();
   if (!animationId) draw();
 }
@@ -374,6 +521,7 @@ function restartGame() {
 function togglePause() {
   if (!gameStarted || gameOver) return;
   paused = !paused;
+  bgm.setPaused(paused);
 }
 
 document.getElementById('startBtn').addEventListener('click', () => {
