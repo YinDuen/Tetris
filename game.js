@@ -435,6 +435,8 @@ function updateUI() {
   document.getElementById('score').textContent = score;
   document.getElementById('level').textContent = level;
   document.getElementById('lines').textContent = lines;
+  const themeLevel = ((Math.max(1, level) - 1) % 6) + 1;
+  document.body.setAttribute('data-level', String(themeLevel));
 }
 
 function draw(timestamp = 0) {
