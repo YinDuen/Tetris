@@ -7,6 +7,14 @@
 1. 用瀏覽器直接開啟 `index.html`，或
 2. 使用本地伺服器（例如 VS Code Live Server、`npx serve`）開啟專案資料夾後訪問首頁。
 
+## 部署到 GitHub Pages
+
+專案已設定 GitHub Actions：每次 push 到 `main` 或 `master` 會自動部署到 GitHub Pages。
+
+1. 將此專案 push 到你的 GitHub 倉庫。
+2. 在倉庫 **Settings → Pages** 中，將 **Source** 設為 **GitHub Actions**。
+3. 之後每次 commit 並 push， workflow 會自動執行，完成後遊戲會出現在 `https://<你的帳號>.github.io/<倉庫名>/`。
+
 ## 操作方式
 
 | 按鍵 | 功能 |
