@@ -250,6 +250,7 @@ let gameStarted = false;
 let dropInterval = 1000;
 let lastDrop = 0;
 let animationId = null;
+let ghostEnabled = false;
 
 function createBoard() {
   return Array.from({ length: ROWS }, () => Array(COLS).fill(0));
@@ -376,6 +377,67 @@ function drawBlock(ctx, x, y, color, size = BLOCK_SIZE) {
   ctx.fillRect(x * size + padding, y * size + padding, 2, size - padding * 2);
 }
 
+function getGhostY() {
+  if (!currentPiece || gameOver) return null;
+  const origY = currentPiece.y;
+  let y = origY;
+  for (;;) {
+    currentPiece.y = y + 1;
+    if (collision()) {
+      currentPiece.y = origY;
+      return y;
+    }
+    y = currentPiece.y;
+  }
+}
+
+function drawGhost() {
+  if (!currentPiece || gameOver) return;
+  const ghostY = getGhostY();
+  if (ghostY === null || ghostY === currentPiece.y) return;
+  const { matrix, x } = currentPiece;
+  const padding = 1;
+  const baseX = x * BLOCK_SIZE;
+  const baseY = ghostY * BLOCK_SIZE;
+  const rows = matrix.length;
+  const cols = matrix[0].length;
+  const cell = (r, c) => (r >= 0 && r < rows && c >= 0 && c < cols && matrix[r][c]);
+
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < cols; col++) {
+      if (!matrix[row][col]) continue;
+      const color = COLORS[matrix[row][col]];
+      const hex = color.replace('#', '');
+      const r = parseInt(hex.slice(0, 2), 16);
+      const g = parseInt(hex.slice(2, 4), 16);
+      const b = parseInt(hex.slice(4, 6), 16);
+      const left = baseX + col * BLOCK_SIZE + padding;
+      const top = baseY + row * BLOCK_SIZE + padding;
+      const right = baseX + (col + 1) * BLOCK_SIZE - padding;
+      const bottom = baseY + (row + 1) * BLOCK_SIZE - padding;
+      ctx.fillStyle = `rgba(${r},${g},${b},0.28)`;
+      ctx.fillRect(left, top, right - left, bottom - top);
+    }
+  }
+  ctx.beginPath();
+  ctx.strokeStyle = 'rgba(255,255,255,0.35)';
+  ctx.lineWidth = 1.5;
+  for (let row = 0; row < rows; row++) {
+    for (let col = 0; col < cols; col++) {
+      if (!matrix[row][col]) continue;
+      const left = baseX + col * BLOCK_SIZE + padding;
+      const top = baseY + row * BLOCK_SIZE + padding;
+      const right = baseX + (col + 1) * BLOCK_SIZE - padding;
+      const bottom = baseY + (row + 1) * BLOCK_SIZE - padding;
+      if (!cell(row - 1, col)) { ctx.moveTo(left, top); ctx.lineTo(right, top); }
+      if (!cell(row, col + 1)) { ctx.moveTo(right, top); ctx.lineTo(right, bottom); }
+      if (!cell(row + 1, col)) { ctx.moveTo(right, bottom); ctx.lineTo(left, bottom); }
+      if (!cell(row, col - 1)) { ctx.moveTo(left, bottom); ctx.lineTo(left, top); }
+    }
+  }
+  ctx.stroke();
+}
+
 function drawBoard() {
   ctx.fillStyle = '#0a0a0e';
   ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -441,6 +503,7 @@ function updateUI() {
 
 function draw(timestamp = 0) {
   drawBoard();
+  if (ghostEnabled) drawGhost();
   drawPiece();
   updateUI();
   if (!gameOver && gameStarted && !paused && timestamp - lastDrop > dropInterval) {
@@ -588,8 +651,31 @@ document.addEventListener('keydown', (e) => {
       e.preventDefault();
       togglePause();
       break;
+    case 'KeyG':
+      e.preventDefault();
+      ghostEnabled = !ghostEnabled;
+      const ghostCb = document.getElementById('ghostToggle');
+      if (ghostCb) ghostCb.checked = ghostEnabled;
+      try { localStorage.setItem('tetris-ghost', ghostEnabled ? '1' : '0'); } catch (_) {}
+      break;
   }
 });
+
+// Ghost 開關（預設關閉，可從 localStorage 讀取上次選擇）
+(function initGhost() {
+  try {
+    const saved = localStorage.getItem('tetris-ghost');
+    if (saved !== null) ghostEnabled = saved === '1';
+  } catch (_) {}
+  const cb = document.getElementById('ghostToggle');
+  if (cb) {
+    cb.checked = ghostEnabled;
+    cb.addEventListener('change', () => {
+      ghostEnabled = cb.checked;
+      try { localStorage.setItem('tetris-ghost', ghostEnabled ? '1' : '0'); } catch (_) {}
+    });
+  }
+})();
 
 // 初始化
 board = createBoard();

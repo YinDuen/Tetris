@@ -139,6 +139,28 @@ h1 {
   image-rendering: crisp-edges;
 }
 
+.ghost-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.5rem 0.75rem;
+  background: var(--bg-panel);
+  border: 1px solid rgba(0, 255, 200, 0.2);
+  border-radius: 8px;
+}
+
+.ghost-option input[type="checkbox"] {
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
+.ghost-option span {
+  user-select: none;
+}
+
 .game-wrapper {
   position: relative;
   padding: 8px;
